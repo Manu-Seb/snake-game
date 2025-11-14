@@ -6,7 +6,7 @@ use macroquad::{
     window::{screen_height, screen_width},
 };
 
-pub struct Config {}
+const TILE: f32 = 30.;
 
 pub struct GameBoard {
     delay: f64,
@@ -34,39 +34,21 @@ impl GameBoard {
         self.snake = vec![vec2(5., 5.)];
         self.food = vec2(7., 7.);
     }
-    pub fn get_delay(&self) -> f64 {
-        self.delay
-    }
-    pub fn get_playing(&self) -> bool {
+    pub fn playing(&self) -> bool {
         self.playing
-    }
-    pub fn get_snake(&self) -> &Vec<Vec2> {
-        &self.snake
     }
     pub fn get_food(&self) -> &Vec2 {
         &self.food
     }
-    pub fn get_dir(&self) -> &Vec2 {
-        &self.dir
+    pub fn delay(&self) -> f64 {
+        self.delay
     }
-    pub fn stop_playing(&mut self) {
-        self.playing = false;
-    }
-    pub fn update_food(&mut self) {
-        self.food = Vec2 {
-            x: RandomRange::gen_range(0, 15) as f32,
-            y: RandomRange::gen_range(0, 15) as f32,
-        }
-    }
-    pub fn add_snake_body_end(&mut self, new_head: Vec2) {
-        self.snake.insert(0, new_head);
-    }
-    pub fn reduce_snake_body(&mut self) {
-        self.snake.pop();
+    pub fn snake(&self) -> &Vec<Vec2> {
+        &self.snake
     }
     pub fn check_edge(&mut self) {
-        let max_x = (screen_width() / 30.) as i32;
-        let max_y = (screen_height() / 30.) as i32;
+        let max_x = (screen_width() / TILE) as i32;
+        let max_y = (screen_height() / TILE) as i32;
         if self.snake[0].x < 0. {
             self.snake[0].x = max_x as f32 - 1.;
         }
@@ -81,19 +63,39 @@ impl GameBoard {
             self.snake[0].y = 0.;
         }
     }
-}
+    pub fn handle_click(&mut self) {
+        if is_key_pressed(KeyCode::Left) && self.dir != vec2(1., 0.) {
+            self.dir = vec2(-1., 0.);
+        }
+        if is_key_pressed(KeyCode::Right) && self.dir != vec2(-1., 0.){
+            self.dir = vec2(1., 0.);
+        }
+        if is_key_pressed(KeyCode::Up) && self.dir != vec2(0., 1.){
+            self.dir = vec2(0., -1.);
+        }
+        if is_key_pressed(KeyCode::Down) && self.dir != vec2(0., -1.){
+            self.dir = vec2(0., 1.);
+        }
+    }
 
-pub fn handle_click(board: &mut GameBoard) {
-    if is_key_pressed(KeyCode::Left) {
-        board.dir = vec2(-1., 0.);
-    }
-    if is_key_pressed(KeyCode::Right) {
-        board.dir = vec2(1., 0.);
-    }
-    if is_key_pressed(KeyCode::Up) {
-        board.dir = vec2(0., -1.);
-    }
-    if is_key_pressed(KeyCode::Down) {
-        board.dir = vec2(0., 1.);
+    pub fn update_snake(&mut self, score: &mut u32) {
+        let new_head: Vec2 = self.snake[0] + self.dir;
+        if new_head == self.food {
+            self.snake.insert(0, new_head);
+            self.check_edge();
+            self.food = Vec2 {
+                x: RandomRange::gen_range(0, 15) as f32,
+                y: RandomRange::gen_range(0, 15) as f32,
+            };
+            *score += 1;
+        } else {
+            if self.snake.contains(&new_head) {
+                self.playing = false;
+            }
+            self.snake.insert(0, new_head);
+
+            self.check_edge();
+            self.snake.pop();
+        }
     }
 }
