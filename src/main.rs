@@ -1,21 +1,14 @@
 use macroquad::prelude::*;
 use snake_game;
-use snake_game::GameBoard;
+use snake_game::{GameBoard, TILE};
 
-const TILE: f32 = 30.;
 fn draw_objects(board: &GameBoard, score: &u32) {
     let scoretext = score.to_string();
     draw_text(&scoretext, 20.0, 20.0, 40.0, WHITE);
     for s in board.snake() {
-        draw_rectangle(s.x * TILE, s.y * 30., 30., 30., GREEN);
+        draw_rectangle(s.x * TILE, s.y * TILE, TILE, TILE, GREEN);
     }
-    draw_rectangle(
-        board.get_food().x * TILE,
-        board.get_food().y * TILE,
-        TILE,
-        TILE,
-        RED,
-    );
+    draw_rectangle(board.food().x * TILE, board.food().y * TILE, TILE, TILE, RED);
 }
 
 fn death(conf: &mut GameBoard, score: &mut u32) {
@@ -38,10 +31,10 @@ async fn main() {
     let mut board = GameBoard::new();
     loop {
         clear_background(BLACK);
-        if board.playing() {
+        if board.playing {
             board.handle_click();
             draw_objects(&board, &score);
-            if get_time() - time > board.delay() {
+            if get_time() - time > board.delay {
                 time = get_time();
                 board.update_snake(&mut score);
             }
