@@ -85,6 +85,7 @@ impl GameBoard {
                 y: RandomRange::gen_range(0, max_y) as f32,
             };
             *score += 1;
+            self.delay -= 0.005;
         } else {
             self.snake.pop_back();
         }
